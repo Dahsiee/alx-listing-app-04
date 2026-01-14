@@ -1,41 +1,36 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import PropertyDetail from "@/components/property/PropertyDetail";
 
-export default function PropertyDetail() {
+export default function PropertyDetailPage() {
   const router = useRouter();
   const { id } = router.query;
+
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
     const fetchProperty = async () => {
+      if (!id) return; // wait until id is available
       try {
         const response = await axios.get(`/api/properties/${id}`);
         setProperty(response.data);
       } catch (err) {
-        console.error("Error fetching property:", err);
+        setError("Failed to load property details");
+        console.error("Error fetching property details:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchProperty();
   }, [id]);
 
   if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
   if (!property) return <p>Property not found</p>;
 
-  return (
-    <div className="p-6">
-      <img
-        src={property.imageUrl}
-        alt={property.name}
-        className="w-full h-64 object-cover rounded"
-      />
-      <h1 className="text-2xl font-bold mt-4">{property.name}</h1>
-      <p>{property.location}</p>
-      <p className="text-lg font-semibold">${property.price}</p>
-    </div>
-  );
+  return <PropertyDetail property={property} />;
 }
